@@ -35,7 +35,7 @@ by 4:15, submit by 4:30, last push before 4:45 pm.
   and MYS-02 KUR-02-M flagged as data issues with plain-words notes and
   excluded, no other location-SKU flagged, and a sample run JSON validates
   against the schema.
-- [ ] 2. **Velocity, season lift, cover** (12:30 to 1:00) - per-day-in-stock
+- [x] 2. **Velocity, season lift, cover** (12:30 to 1:00) - per-day-in-stock
   velocity over 84 days; peer velocity for low days in stock, new stores and new
   styles; per-zone season lift (capped 1.0 to 3.0); forecast and cover per
   store-SKU and per style. *Done when:* fixture tests prove stock-out masking is
