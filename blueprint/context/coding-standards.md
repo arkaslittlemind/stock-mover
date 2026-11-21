@@ -1,86 +1,57 @@
 # Coding Standards
 
-> Your conventions. Edit these once to match your stack. The defaults below
-> assume Next.js + TypeScript + Tailwind + Prisma; change or trim anything that
-> doesn't fit your project.
->
-> Run `/onboard` after installing the Blueprint. It tunes this file to the real
-> project stack, along with `AGENTS.md`, `CLAUDE.md` when present,
-> `ai-interaction.md`, `.gitignore`, and README placement. Review the result
-> before `/overview`.
+> Tuned by `/onboard` for this monorepo: a Python engine (`engine/`) and a Next.js
+> app (`apps/web/`). No database, no auth.
 
-## TypeScript
+## Project structure
 
-- Strict mode enabled
-- No `any` types - use proper typing or `unknown`
-- Define interfaces for all props, API responses, and data models
-- Use type inference where obvious, explicit types where helpful
+- `engine/` - uv package `stock_mover` (Python 3.12). Source in
+  `engine/src/stock_mover/`, tests in `engine/tests/`. Console script `stock-mover`.
+- `apps/web/` - Next.js 16 App Router, TypeScript, Tailwind v4, shadcn/ui, Zod.
+  Source in `apps/web/src/` (`app/`, `components/`, `lib/`).
+- `data/raw/` - the 17 Manyavar CSVs, read-only input. Never edit them; data
+  problems are flagged by the engine, not fixed in the files.
+- `out/` - engine run output, git-ignored. The committed seed run for the web app
+  lives at `apps/web/data/seed-run.json`.
 
-## React
+## Engine (Python)
 
-- Functional components only (no class components)
-- Use hooks for state and side effects
-- Keep components focused - one job per component
-- Extract reusable logic into custom hooks
+- Python 3.12, managed with `uv` (`uv add`, `uv run`); never pip directly.
+- pandas for tables. Read CSVs as text and convert types explicitly, so bad values
+  are found instead of silently coerced.
+- Pydantic v2 models define the output contract (the run JSON). The web app's Zod
+  schema mirrors the exported JSON Schema; change both together.
+- Pure functions for engine logic (velocity, cover, allocation, rule checks), with
+  inputs as DataFrames or plain values. Keep file IO in the loader and CLI.
+- Type hints on public functions. Constants (rule thresholds such as 30 days of
+  cover, Rs 1,00,000 approval limit) live in one module, named in
+  SCREAMING_SNAKE_CASE, with the source rule in the name or a short comment.
+- Every move carries a one-line plain-words reason built from engine numbers.
+- Secrets (`SARVAM_API_KEY`) come from the environment only.
 
-## Next.js
+## Web app (TypeScript / Next.js)
 
-- Server components by default
-- Only use `'use client'` when needed (interactivity, hooks, browser APIs)
-- Use Server Actions for form submissions and simple mutations
-- Use API routes when you need:
-  - Webhooks (Clerk, GitHub, etc.)
-  - File uploads with progress tracking
-  - Long-running operations
-  - Specific HTTP status codes or headers
-  - Endpoints for future mobile/CLI clients
-  - Third-party integrations
-- Otherwise, fetch data directly in server components
-- Dynamic routes for item/collection pages
-
-## File Organization
-
-- Components: `src/components/[feature]/ComponentName.tsx`
-- Pages: `src/app/[route]/page.tsx`
-- Server Actions: `src/actions/[feature].ts`
-- Types: `src/types/[feature].ts`
-- Lib/Utils: `src/lib/[utility].ts`
-
-## Naming
-
-- Components: PascalCase (`ItemCard.tsx`)
-- Files: Match component name or kebab-case
-- Functions: camelCase
-- Constants: SCREAMING_SNAKE_CASE
-- Types/Interfaces: PascalCase (no prefix)
+- TypeScript strict; no `any` (use `unknown` and narrow).
+- Server components by default; `'use client'` only for interactivity, hooks or
+  browser APIs (approvals in localStorage, filters, CSV export).
+- Validate every run JSON with Zod at the boundary; an invalid run shows an error
+  state, never a crash.
+- Components: `src/components/[feature]/ComponentName.tsx`; types and schemas:
+  `src/lib/`; pages: `src/app/[route]/page.tsx`.
+- Naming: components PascalCase, functions camelCase, constants SCREAMING_SNAKE_CASE.
 
 ## Styling
 
-- Tailwind CSS for all styling
-- Tailwind v4: CSS-first config (`@theme` in `globals.css`), no `tailwind.config.js`
-- Use shadcn/ui components where applicable
-- No inline styles
-- Dark mode first, light mode as option
+- Tailwind CSS v4 (CSS-first config in `globals.css`), shadcn/ui components where
+  they fit, no inline styles.
+- Mobile works: no horizontal scroll at 390 px.
 
-## Database
+## Error handling
 
-- Use Prisma ORM for all database operations
-- Always use `prisma migrate dev` for schema changes (not `db push`)
-- Run `prisma migrate status` before committing to verify migrations are in sync
-- Production deployments must run `prisma migrate deploy` before the app starts
-
-## Data Fetching
-
-- Server components fetch directly with Prisma
-- Client components use Server Actions
-- Validate all inputs with Zod
-- Scope every user-owned query by the authenticated Clerk user id (`clerkUserId`); never trust a client-supplied user id
-
-## Error Handling
-
-- Use try/catch in Server Actions
-- Return `{ success, data, error }` pattern from actions
-- Display user-friendly error messages via toast
+- Engine: data problems become data-issue records with plain-words notes and the
+  affected rows are excluded; the run still completes. Crash only on missing input
+  files or a broken schema.
+- Web: user-friendly error states; never a blank or crashed page on the live URL.
 
 ## Testing
 
@@ -121,13 +92,13 @@ of the switch; the skills and `ai-interaction.md` only point back here.
   `/implement` writes the test with the step, and if a step surfaces logic the spec
   didn't foresee, add a focused test then.
 - An empty suite should fail, not pass, so "no tests ran" never looks like "passed".
-- Test files live next to source files (for example `feature.test.ts`).
 - Run them via the project's test command (see Commands in `AGENTS.md`), not a
   hardcoded tool name.
 
-Stack binding (swap for yours): a TypeScript app uses Vitest, `vi.mock()` for
-external dependencies (Prisma, Clerk, etc.), and `vi.useFakeTimers()` for
-time-dependent logic; a Python app would use pytest; a Go app `go test`.
+Stack binding: the engine uses pytest (`cd engine && uv run pytest -q`), with small
+hand-built DataFrame fixtures plus checks against the real CSVs in `data/raw/`. The
+LLM call is replaced by a fake in tests. Test files live in `engine/tests/`
+(`test_<module>.py`), not next to source. The web app has no unit runner yet.
 
 ## Browser Verification
 

@@ -15,7 +15,12 @@ for optional tool settings.
 
 ## What this is
 
-A description of your project and the problem it solves.
+Stock Mover: a daily engine and approval page for Manyavar merchandisers. A Python
+engine (`engine/`) reads the Manyavar CSVs (`data/raw/`), plans warehouse-to-store,
+store-to-store and ageing-stock moves under the merchandising rules, validates every
+move, and writes a run JSON. A Next.js app (`apps/web/`, deployed to Vercel with
+Root Directory `apps/web`) shows that run as a ready-to-approve list. Product plan:
+`blueprint/project-plan.md`; build plan: `blueprint/build-plan.md`.
 
 This project is built with the **AI Blueprint**, a workflow layer, not an
 app skeleton. To start a new project, scaffold the app first in an empty folder
@@ -83,19 +88,31 @@ explicit-only `autopilot` and `continuous`.
 
 ## Commands
 
-<!-- blueprint:onboarding-required -->
-For a standard Next.js project. Change or remove if you're using something else.
+Run from the repo root unless noted. Package managers: **uv** for `engine/`,
+**pnpm** for `apps/web/` (never npm or yarn).
 
-- Dev server: `npm run dev` (http://localhost:3000)
-- Build: `npm run build`
-- Production server: `npm run start`
-- Lint: `npm run lint`
+Engine (`cd engine`):
 
-Testing is opt-in. If this project does not already have a unit test runner, run
-`/tests` or `$tests` to add one and update this section with the real test
-commands.
+- Install: `uv sync`
+- Test: `uv run pytest -q`
+- Run the engine: `uv run stock-mover` (the `run` subcommand and `out/latest.json`
+  arrive in build item 3)
 
-Browser testing is also opt-in. Run `/tests browser` or `$tests browser` to add
-or normalize a browser harness and document its exact command as `Browser
-tests`. Check and Continuous Mode can then reuse it without installing tooling
-mid-feature.
+Web app (`cd apps/web`):
+
+- Install: `pnpm install`
+- Dev server: `pnpm dev` (http://localhost:3000)
+- Build: `pnpm build`
+- Production server: `pnpm start`
+- Lint: `pnpm lint`
+- Typecheck: `pnpm exec tsc --noEmit`
+
+Test gate: the **engine** has a test command (`uv run pytest -q`), so tests are a
+gate for engine logic steps. The web app has no unit test runner; verify it with
+the build, lint, typecheck and browser evidence.
+
+Deploy: every push to `main` deploys to https://stock-mover.vercel.app through the
+Vercel Git integration. No commits or pushes after 4:45 pm IST on 21 Nov 2026.
+
+Browser testing is opt-in. Run `/tests browser` or `$tests browser` to add a browser
+harness and document its exact command as `Browser tests`.
