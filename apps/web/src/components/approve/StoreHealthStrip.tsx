@@ -8,7 +8,7 @@ export function StoreHealthStrip({ stores }: { stores: Run["stores"] }) {
   const overCapacity = stores.filter((store) => store.flags.includes("over_capacity")).length;
 
   return (
-    <section aria-label="Store health" className="mx-auto mb-6 w-full max-w-[1240px] px-4 md:px-8">
+    <section aria-label="Store health" className="mx-auto mb-6 w-full max-w-[1200px] px-4 md:px-6">
       <details className="rounded-xl border border-rule bg-white/35">
         <summary className="cursor-pointer rounded-xl px-4 py-3 font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-saffron">
           Store health{" "}

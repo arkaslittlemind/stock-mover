@@ -3,9 +3,9 @@ import { placeName } from "@/lib/stores";
 
 export function DataIssues({ issues }: { issues: DataIssue[] }) {
   return (
-    <section aria-labelledby="data-issues-title" className="mx-auto w-full max-w-[1240px] px-4 pt-12 md:px-8 md:pt-16">
+    <section aria-labelledby="data-issues-title" className="mx-auto w-full max-w-[1200px] px-4 pt-12 md:px-6 md:pt-16">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h2 id="data-issues-title" className="font-serif text-[28px] leading-tight md:text-[32px]">
+        <h2 id="data-issues-title" className="pg-serif text-[28px] leading-tight md:text-[36px]">
           Data issues
         </h2>
         <p className="text-[13px] text-stone">Rows the engine did not trust, so no move uses them.</p>

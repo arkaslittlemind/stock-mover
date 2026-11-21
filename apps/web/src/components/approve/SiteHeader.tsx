@@ -1,26 +1,45 @@
+export function LogoMark({ className = "size-[30px]" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 34 34" className={className} aria-hidden="true">
+      <circle cx="9" cy="9" r="7" fill="currentColor" />
+      <circle cx="9" cy="25" r="7" fill="currentColor" />
+      <path d="M18 4h6l8 13-8 13h-6l8-13z" fill="currentColor" />
+    </svg>
+  );
+}
+
+const LINKS = [
+  ["Moves", "#run"],
+  ["Features", "#features"],
+  ["Data issues", "#data-issues-title"],
+  ["How it works", "#how-title"],
+] as const;
+
 export function SiteHeader({ showJump = true }: { showJump?: boolean }) {
   return (
-    <header className="mx-auto flex w-full max-w-[1240px] items-center justify-between px-4 py-3.5 md:px-8 md:py-[18px]">
-      <span
-        className="inline-flex items-center gap-2 text-xs font-semibold tracking-[0.16em] uppercase md:text-[13px]"
-        aria-label="Stock Mover"
-      >
-        <span className="size-[7px] rounded-full bg-oxblood" aria-hidden="true" />
-        <span aria-hidden="true">Stock</span>
-        <svg width="26" height="10" viewBox="0 0 26 10" fill="none" className="text-oxblood" aria-hidden="true">
-          <path d="M0 5H24" stroke="currentColor" strokeWidth="1.5" />
-          <path d="M20 1L24.5 5L20 9" stroke="currentColor" strokeWidth="1.5" />
-        </svg>
-        <span aria-hidden="true">Mover</span>
-      </span>
-      {showJump && (
-        <a
-          href="#run"
-          className="inline-flex h-8 items-center gap-1.5 rounded-full border border-rule px-3 text-xs font-medium transition-colors duration-150 hover:border-charcoal focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-saffron md:h-[34px] md:px-3.5 md:text-[13px]"
-        >
-          Review today’s moves <span aria-hidden="true">↓</span>
-        </a>
-      )}
+    <header className="absolute inset-x-0 top-0 z-20 pt-2">
+      <div className="mx-auto grid h-14 w-full max-w-[1200px] grid-cols-[auto_1fr] items-center px-4 md:grid-cols-[1fr_auto_1fr] md:px-6">
+        <span className="inline-flex items-center gap-2 text-[19px] tracking-[-0.3px] whitespace-nowrap md:text-[21px]">
+          <LogoMark />
+          Stock Mover
+        </span>
+        {showJump && (
+          <nav aria-label="Sections" className="hidden gap-1.5 md:flex">
+            {LINKS.map(([label, href]) => (
+              <a key={href} href={href} className="rounded-md px-2.5 py-1.5 text-sm hover:bg-charcoal/5">
+                {label}
+              </a>
+            ))}
+          </nav>
+        )}
+        {showJump && (
+          <div className="flex justify-end">
+            <a href="#run" className="pg-btn pg-btn-cta h-[30px] px-2.5 text-sm font-medium">
+              Review today’s moves
+            </a>
+          </div>
+        )}
+      </div>
     </header>
   );
 }

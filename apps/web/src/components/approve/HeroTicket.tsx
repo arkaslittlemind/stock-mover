@@ -29,14 +29,14 @@ export function HeroTicket({ move }: { move: Move | null }) {
         </div>
         <div className="mt-[18px] flex items-center justify-between gap-3">
           <div className="flex flex-col">
-            <span className="text-[30px] leading-none font-semibold tracking-[-0.01em] tabular-nums md:text-[42px]">
+            <span className="text-[28px] leading-none font-semibold tracking-[-0.01em] whitespace-nowrap tabular-nums md:text-[42px]">
               {move.from}
             </span>
             <span className="mt-1.5 text-[13px] text-ivory/65">{placeName(move.from)}</span>
           </div>
           <RouteArrow width={96} className="min-w-10 flex-1 text-saffron" />
           <div className="flex flex-col text-right">
-            <span className="text-[30px] leading-none font-semibold tracking-[-0.01em] tabular-nums md:text-[42px]">
+            <span className="text-[28px] leading-none font-semibold tracking-[-0.01em] whitespace-nowrap tabular-nums md:text-[42px]">
               {move.to}
             </span>
             <span className="mt-1.5 text-[13px] text-ivory/65">{placeName(move.to)}</span>

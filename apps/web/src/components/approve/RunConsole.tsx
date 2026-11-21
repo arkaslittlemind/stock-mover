@@ -9,6 +9,8 @@ import { cn } from "@/lib/utils";
 import { FOCUS, MoveRow } from "./MoveRow";
 
 const PAGE = 50;
+/** In the "All moves" view each type shows a short preview; its own tab shows the full paged list. */
+const PREVIEW = 5;
 
 type TypeFilter = "all" | MoveType;
 
@@ -229,6 +231,13 @@ export function RunConsole({ runId, dataAsOf, runInfo, briefing, moves, dataIssu
           </div>
         </div>
 
+        {/* The list scrolls inside its own frame so the page length stays fixed however many moves there are. */}
+        <div
+          key={typeFilter}
+          data-lenis-prevent
+          className="max-h-[75vh] overflow-y-auto overscroll-contain md:max-h-[720px]"
+          tabIndex={-1}
+        >
         {moves.length === 0 ? (
           <p className="px-5 py-16 text-center font-serif text-3xl">No moves today</p>
         ) : nothingMatches ? (
@@ -245,11 +254,12 @@ export function RunConsole({ runId, dataAsOf, runInfo, briefing, moves, dataIssu
         ) : (
           visibleTypes.map((t) => {
             const group = byType[t];
-            const visible = group.slice(0, shown[t]);
+            const preview = typeFilter === "all";
+            const visible = group.slice(0, preview ? PREVIEW : shown[t]);
             const ids = group.map((m) => m.id);
             return (
               <section key={t} aria-label={TYPE_LABEL[t]} className="border-b border-rule last:border-b-0">
-                <div className="flex flex-wrap items-center justify-between gap-2 bg-[#fcfaf6] px-4 py-3 md:px-5">
+                <div className="sticky top-0 z-10 flex flex-wrap items-center justify-between gap-2 border-b border-rule bg-paper-card px-4 py-3 md:px-5">
                   <h3 className="text-sm font-semibold">
                     {TYPE_LABEL[t]}{" "}
                     <span className="font-normal text-stone tabular-nums">
@@ -313,7 +323,19 @@ export function RunConsole({ runId, dataAsOf, runInfo, briefing, moves, dataIssu
                       <span>
                         Showing {formatNum(visible.length)} of {formatNum(group.length)}
                       </span>
-                      {visible.length < group.length && (
+                      {preview && visible.length < group.length && (
+                        <button
+                          type="button"
+                          onClick={() => setTypeFilter(t)}
+                          className={cn(
+                            "h-9 rounded-lg border border-rule px-3 font-medium text-charcoal hover:border-charcoal",
+                            FOCUS,
+                          )}
+                        >
+                          See all {formatNum(group.length)} →
+                        </button>
+                      )}
+                      {!preview && visible.length < group.length && (
                         <button
                           type="button"
                           onClick={() => setShown((s) => ({ ...s, [t]: s[t] + PAGE }))}
@@ -332,6 +354,7 @@ export function RunConsole({ runId, dataAsOf, runInfo, briefing, moves, dataIssu
             );
           })
         )}
+        </div>
       </div>
     </div>
   );

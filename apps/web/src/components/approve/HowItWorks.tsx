@@ -15,8 +15,8 @@ const STEPS = [
 
 export function HowItWorks() {
   return (
-    <section aria-labelledby="how-title" className="mx-auto w-full max-w-[1240px] px-4 pt-[72px] md:px-8 md:pt-24">
-      <h2 id="how-title" className="font-serif text-[34px] leading-none md:text-[40px]">
+    <section aria-labelledby="how-title" className="mx-auto w-full max-w-[1200px] px-4 pt-[72px] md:px-6 md:pt-24">
+      <h2 id="how-title" className="pg-serif text-[32px] leading-9 tracking-[-0.2px] md:text-[44px] md:leading-[50px]">
         How it works
       </h2>
       <ol className="step-line relative mt-9 grid gap-6 md:grid-cols-3 md:gap-8">

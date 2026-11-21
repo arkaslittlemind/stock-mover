@@ -49,7 +49,9 @@ export const MoveRow = memo(function MoveRow({ move: m, decision, expanded, onDe
           {m.sku_id} · {m.size}
           {m.needs_senior_approval && <span className="font-medium text-oxblood"> · Senior approval</span>}
         </p>
-        <p className="mt-0.5 text-xs text-stone">{m.reason}</p>
+        <p className={cn("mt-0.5 text-xs text-stone", !expanded && "line-clamp-2")} title={expanded ? undefined : m.reason}>
+          {m.reason}
+        </p>
         <button
           type="button"
           aria-expanded={expanded}

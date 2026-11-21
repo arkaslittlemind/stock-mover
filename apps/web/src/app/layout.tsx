@@ -1,16 +1,29 @@
 import type { Metadata } from "next";
-import { Instrument_Sans, Instrument_Serif } from "next/font/google";
+import { Caveat, IBM_Plex_Mono, Inter, Newsreader } from "next/font/google";
+import { SmoothScroll } from "@/components/SmoothScroll";
 import "./globals.css";
 
-const instrumentSans = Instrument_Sans({
-  variable: "--font-instrument-sans",
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
 });
 
-const instrumentSerif = Instrument_Serif({
-  variable: "--font-instrument-serif",
-  weight: "400",
+const newsreader = Newsreader({
+  variable: "--font-newsreader",
+  weight: ["300", "400"],
   style: ["normal", "italic"],
+  subsets: ["latin"],
+});
+
+const plexMono = IBM_Plex_Mono({
+  variable: "--font-plex-mono",
+  weight: ["400", "500"],
+  subsets: ["latin"],
+});
+
+const caveat = Caveat({
+  variable: "--font-caveat",
+  weight: "500",
   subsets: ["latin"],
 });
 
@@ -24,9 +37,12 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
-      className={`${instrumentSans.variable} ${instrumentSerif.variable} h-full antialiased motion-safe:scroll-smooth`}
+      className={`${inter.variable} ${newsreader.variable} ${plexMono.variable} ${caveat.variable} h-full antialiased`}
     >
-      <body className="flex min-h-full flex-col bg-ivory text-charcoal">{children}</body>
+      <body className="flex min-h-full flex-col bg-white text-charcoal">
+        <SmoothScroll />
+        {children}
+      </body>
     </html>
   );
 }
