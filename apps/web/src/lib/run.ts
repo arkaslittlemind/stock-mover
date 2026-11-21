@@ -1,5 +1,7 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
+import { head } from "@vercel/blob";
+import { cacheLife } from "next/cache";
 import { z } from "zod";
 
 // Mirrors apps/web/data/run.schema.json (the engine's Pydantic contract, locked in item 1).
@@ -99,19 +101,15 @@ export type Move = Run["moves"][number];
 export type MoveType = Move["type"];
 export type DataIssue = Run["data_issues"][number];
 
-export type RunLoadResult = { ok: true; run: Run } | { ok: false; problem: string; paths: string[] };
+export type RunSource = "blob" | "seed";
+export type RunLoadResult = { ok: true; run: Run; source: RunSource } | { ok: false; problem: string; paths: string[] };
+type ParseResult = { ok: true; run: Run } | { ok: false; problem: string; paths: string[] };
 
 const SEED_RUN_PATH = path.join(process.cwd(), "data", "seed-run.json");
+const BLOB_RUN_PATHNAME = "runs/latest.json";
 
-/** Reads and validates the committed seed run. Expected failures become an error result, never a throw. */
-export function loadRun(): RunLoadResult {
-  let raw: string;
-  try {
-    raw = readFileSync(SEED_RUN_PATH, "utf8");
-  } catch {
-    return { ok: false, problem: "The run file is missing.", paths: [] };
-  }
-
+/** Parses raw run text against the contract. Expected failures become an error result, never a throw. */
+export function parseRun(raw: string): ParseResult {
   let json: unknown;
   try {
     json = JSON.parse(raw);
@@ -126,4 +124,40 @@ export function loadRun(): RunLoadResult {
   }
 
   return { ok: true, run: parsed.data };
+}
+
+/** Latest run uploaded by the daily job, or null with one warning line on any failure. */
+async function loadBlobRun(): Promise<Run | null> {
+  if (!process.env.BLOB_READ_WRITE_TOKEN) return null;
+  try {
+    const meta = await head(BLOB_RUN_PATHNAME);
+    // The version query skips a CDN copy older than the latest upload.
+    const res = await fetch(`${meta.url}?v=${meta.uploadedAt.getTime()}`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const result = parseRun(await res.text());
+    if (!result.ok) throw new Error(`${result.problem} ${result.paths.join("; ")}`);
+    return result.run;
+  } catch (error) {
+    const reason = error instanceof Error ? error.message : "unknown error";
+    console.warn(`Blob run unavailable, using the seed run: ${reason}`);
+    return null;
+  }
+}
+
+/** Latest Blob run when available, else the committed seed run. Cached and refreshed every 60 seconds. */
+export async function loadRun(): Promise<RunLoadResult> {
+  "use cache";
+  cacheLife({ stale: 60, revalidate: 60, expire: 3600 });
+
+  const blobRun = await loadBlobRun();
+  if (blobRun) return { ok: true, run: blobRun, source: "blob" };
+
+  let raw: string;
+  try {
+    raw = readFileSync(SEED_RUN_PATH, "utf8");
+  } catch {
+    return { ok: false, problem: "The run file is missing.", paths: [] };
+  }
+  const result = parseRun(raw);
+  return result.ok ? { ...result, source: "seed" } : result;
 }

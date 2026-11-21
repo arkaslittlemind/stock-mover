@@ -1,7 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // The page reads the seed run from disk when it refreshes, so ship it with the server function.
+  outputFileTracingIncludes: { "/": ["./data/seed-run.json"] },
   cacheComponents: true,
   partialPrefetching: true,
   turbopack: {

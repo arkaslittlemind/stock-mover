@@ -8,8 +8,8 @@ import { BadgeStrip, FeatureGrid, FinalCta, Hero, QuoteBanner, SectionHead, Site
 import { formatCompactINR, formatDate, formatIST, formatNum, triggerPhrase } from "@/lib/format";
 import { loadRun, type Move } from "@/lib/run";
 
-export default function Home() {
-  const result = loadRun();
+export default async function Home() {
+  const result = await loadRun();
 
   if (!result.ok) {
     return (

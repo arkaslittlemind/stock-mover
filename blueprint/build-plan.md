@@ -80,7 +80,7 @@ by 4:15, submit by 4:30, last push before 4:45 pm.
   with an invented number is rejected and the template is used; a real run
   produces a checked LLM briefing; the page shows it with an "AI-written,
   numbers checked" note.
-- [ ] 7. **Runs on its own: daily job** (3:20 to 3:45) - GitHub Actions
+- [x] 7. **Runs on its own: daily job** (3:20 to 3:45) - GitHub Actions
   workflow (daily cron 06:00 IST plus manual dispatch): uv install, engine run,
   briefing, upload `latest.json` to Vercel Blob; **no git commit in the job**;
   the web app reads the latest Blob run (short revalidate) with the seed run as
