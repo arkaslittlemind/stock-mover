@@ -8,6 +8,8 @@
 - **Demo video (2 min):** _link added on submission_
 - Built for **Vibe Coders Hackathon Edition 3** (Calcutta AI Club, 21 Nov 2026) on the **Manyavar "Stock Mover"** statement (Vedant Fashions Limited). All code was written on the day, after 11:00 am.
 
+![Stock Mover home page: today's top move, WH-KOL to LKO-01, 45 Ivory Chikankari Kurta Sets with a one-line reason](docs/images/hero.png)
+
 ## The problem
 
 Stock sits in the wrong place every day. A best-selling kurta is out of stock in the flagship while a small store holds the same style for months. A new style looks like a flop only because the store that would sell it never got any. Working this out by hand across 20 stores, a warehouse and 385 SKUs, under rules for display minimums, capacity and protected flagship styles, takes a merchandiser hours.
@@ -30,6 +32,10 @@ Open the live app and you get today's run:
 - **Morning briefing** written by an LLM (Sarvam) from the engine's numbers. **Every number in it is checked** against the facts; if one doesn't match, the engine retries once and then uses a template.
 - **Runs on its own:** a GitHub Actions job runs at 06:00 IST every day, publishes the run to Vercel Blob, and the page picks it up within a minute. It never commits to git.
 
+![Today's run: the checked morning briefing, filters, totals, and warehouse-to-store moves with Approve and Reject](docs/images/run-console.png)
+
+![Store health for all 20 stores: fill against capacity, days of cover, under-stocked flags and min-display gaps](docs/images/store-health.png)
+
 ## What it found in the data
 
 | Problem in the data | What Stock Mover does |
@@ -42,6 +48,8 @@ Open the live app and you get today's run:
 | BLR-05 opened on 10 Oct, too little history | Uses the velocity of similar stores until it has its own |
 | Ageing fashion stock (JKT-08, IW-08 and others with 500+ days of cover) | Moved to the store that still sells it, else pulled back to the warehouse |
 | Wedding season starts 20 Nov; last year Oct–Nov sold about 3× September | Per-zone season lift from last year's same weeks, capped at 1.0 to 3.0 |
+
+![Data issues panel: KNP-03 SHW-02-L and MYS-02 KUR-02-M excluded from moves](docs/images/data-issues.png)
 
 ## How it works
 
