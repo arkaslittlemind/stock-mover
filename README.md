@@ -53,14 +53,9 @@ Open the live app and you get today's run:
 
 ## How it works
 
-```
-data/raw/*.csv ──► engine (Python) ──► run JSON ──► Vercel Blob ──► Next.js page
-                    load + data checks              (seed run in the repo
-                    velocity, season lift           is the fallback)
-                    allocate + transfers + ageing
-                    rule validator (blocks bad runs)
-                    LLM briefing + number check
-```
+<p align="center">
+  <img src="docs/images/system-design.png" width="460" alt="System design: a daily GitHub Actions cron and the Manyavar CSVs feed the Python engine (load and checks, plan moves, rule validator, Sarvam briefing), which uploads the run to Vercel Blob; the Next.js page reads the latest run, falls back to the seed run, and the merchandiser approves and exports">
+</p>
 
 1. **Load and check:** all 17 CSVs load as text with typed conversions; negative stock and snapshot vs weekly mismatches are flagged.
 2. **Demand:** velocity per day in stock over 84 days; peer velocity for thin history; per-zone season lift; forecast and days of cover per store and SKU.
