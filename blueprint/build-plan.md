@@ -52,7 +52,7 @@ by 4:15, submit by 4:30, last push before 4:45 pm.
   capacity and never resends in-transit stock; KUR-01's 50 warehouse units go to
   the stores with the lowest cover; MZF-01 and BLR-05 get min-display top-ups;
   LKO-01 gets KUR-04.
-- [ ] 4. **Approve page on the live URL** (1:45 to 2:20) - Next.js page reading
+- [x] 4. **Approve page on the live URL** (1:45 to 2:20) - Next.js page reading
   the seed run through Zod: briefing slot, grouped moves with one-line reasons
   and expandable numbers, approve or reject per move and per group
   (localStorage), Needs senior approval tag, filters (area manager or city, type,

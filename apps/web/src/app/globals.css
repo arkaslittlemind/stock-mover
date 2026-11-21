@@ -4,12 +4,35 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Stock Mover brand palette (Dispatch). */
+@theme {
+  --color-ivory: #faf6ef;
+  --color-ivory-deep: #f3ece0;
+  --color-oxblood: #6e2334;
+  --color-oxblood-deep: #561a28;
+  --color-charcoal: #27211e;
+  --color-stone: #6b605a;
+  --color-rule: #e4dbcd;
+  --color-saffron: #b77a36;
+  --color-saffron-ink: #8a5822;
+  --color-approve: #3f6b46;
+  --color-ageing: #5f6b78;
+  --ease-out-strong: cubic-bezier(0.23, 1, 0.32, 1);
+  --animate-ticket-in: ticket-in 260ms cubic-bezier(0.23, 1, 0.32, 1) both;
+}
+
+@keyframes ticket-in {
+  from { opacity: 0; transform: translateY(10px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
-  --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-sans);
+  --font-sans: var(--font-instrument-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-instrument-serif), Georgia, serif;
+  --font-mono: ui-monospace, monospace;
+  --font-heading: var(--font-instrument-serif), Georgia, serif;
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -49,38 +72,38 @@
 }
 
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --background: #faf6ef;
+  --foreground: #27211e;
+  --card: #ffffff;
+  --card-foreground: #27211e;
+  --popover: #ffffff;
+  --popover-foreground: #27211e;
+  --primary: #6e2334;
+  --primary-foreground: #faf6ef;
+  --secondary: #f3ece0;
+  --secondary-foreground: #27211e;
+  --muted: #f3ece0;
+  --muted-foreground: #6b605a;
+  --accent: #f3ece0;
+  --accent-foreground: #27211e;
+  --destructive: #6e2334;
+  --border: #e4dbcd;
+  --input: #e4dbcd;
+  --ring: #b77a36;
+  --chart-1: #6e2334;
+  --chart-2: #b77a36;
+  --chart-3: #3f6b46;
+  --chart-4: #5f6b78;
+  --chart-5: #27211e;
+  --radius: 0.5rem;
+  --sidebar: #27211e;
+  --sidebar-foreground: #faf6ef;
+  --sidebar-primary: #6e2334;
+  --sidebar-primary-foreground: #faf6ef;
+  --sidebar-accent: #3a322e;
+  --sidebar-accent-foreground: #faf6ef;
+  --sidebar-border: #3a322e;
+  --sidebar-ring: #b77a36;
 }
 
 .dark {
@@ -126,5 +149,44 @@
   }
   html {
     @apply font-sans;
+  }
+}
+/* Shapes Tailwind utilities can't express cleanly (spec: feature 4). */
+@layer components {
+  /* Ticket tear line: a dashed rule with two half-circle notches cut in the page colour. */
+  .ticket-perforation {
+    position: relative;
+    margin: 0 14px;
+    border-top: 2px dashed var(--color-rule);
+  }
+  .ticket-perforation::before,
+  .ticket-perforation::after {
+    content: "";
+    position: absolute;
+    top: -10px;
+    width: 18px;
+    height: 18px;
+    border-radius: 9999px;
+    background: var(--color-ivory);
+  }
+  .ticket-perforation::before { left: -24px; }
+  .ticket-perforation::after { right: -24px; }
+
+  /* How it works: dashed connector behind the step numbers (horizontal, vertical on mobile). */
+  .step-line::before {
+    content: "";
+    position: absolute;
+    top: 16px;
+    bottom: 16px;
+    left: 15px;
+    border-left: 1.5px dashed var(--color-saffron);
+  }
+  @media (width >= 48rem) {
+    .step-line::before {
+      bottom: auto;
+      right: 16px;
+      border-left: 0;
+      border-top: 1.5px dashed var(--color-saffron);
+    }
   }
 }
