@@ -20,6 +20,9 @@ LIFT_MAX = 3.0
 
 # Warehouse to store (project plan, engine steps 5, 6 and 10).
 TARGET_EXTRA_DAYS = 30
+DONOR_MIN_COVER_DAYS = 30  # Donor cover rule in data/raw/rules.csv.
+AGEING_MIN_AGE_DAYS = 180
+AGEING_MIN_COVER_DAYS = 120
 SENIOR_APPROVAL_MRP = 100_000
 OUT_PATH = REPO_ROOT / "out" / "latest.json"
 SEED_RUN_PATH = REPO_ROOT / "apps" / "web" / "data" / "seed-run.json"

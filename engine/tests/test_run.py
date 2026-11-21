@@ -1,16 +1,22 @@
 import json
+from dataclasses import replace
 from datetime import datetime, timedelta, timezone
 
 import jsonschema
 import pytest
 
-from stock_mover.allocate import add_targets, allocate, store_headroom, warehouse_lead_days, warehouse_supply
+from stock_mover.allocate import (
+    add_targets, allocate, display_category, store_headroom, warehouse_lead_days, warehouse_supply,
+)
 from stock_mover.checks import find_data_issues
+from stock_mover.cli import main
 from stock_mover.constants import SCHEMA_PATH, SEED_RUN_PATH, TODAY
-from stock_mover.contract import Run
+from stock_mover.contract import DataIssue, RuleResult, Run
 from stock_mover.demand import build_demand
+from stock_mover.health import store_health
 from stock_mover.loader import load_data
 from stock_mover.run import build_run, format_inr, run_text
+from stock_mover.validate import validate_moves
 
 NOW = datetime(2026, 11, 21, 6, 0, tzinfo=timezone(timedelta(hours=5, minutes=30)))
 
@@ -58,11 +64,45 @@ def test_every_move_is_consistent(run):
     ids = [m.id for m in run.moves]
     assert len(ids) == len(set(ids))
     for m in run.moves:
-        assert m.type == "warehouse_to_store" and m.from_location == "WH-KOL"
+        assert m.from_location != m.to_location
+        assert (m.from_location == "WH-KOL") == (m.type == "warehouse_to_store")
+        assert (m.to_location == "WH-KOL") == (m.type == "pull_back")
         assert m.units >= 1
         assert m.needs_senior_approval == (m.value_mrp > 100_000)
         assert m.arrives_on == TODAY + timedelta(days=m.lead_days)
     assert [m.priority for m in run.moves] == sorted((m.priority for m in run.moves), reverse=True)
+
+
+def test_real_run_has_valid_moves_of_all_types_and_store_health(run, ds):
+    assert {m.type for m in run.moves} == {"warehouse_to_store", "store_to_store", "pull_back"}
+    assert {m.style_id for m in run.moves if m.id.startswith("age-")} >= {"JKT-08", "IW-08"}
+    assert run.rule_check and all(r.passed and not r.failures for r in run.rule_check)
+    flagship_stores = set(ds.stores.loc[ds.stores["tier"] == "S++", "store_id"])
+    protected = set(zip(ds.flagship_protected["store_id"], ds.flagship_protected["style_id"]))
+    assert not any(
+        (m.from_location, m.style_id) in protected and m.from_location in flagship_stores
+        for m in run.moves
+    )
+    assert {store.store_id for store in run.stores} == set(ds.stores["store_id"])
+    health = {store.store_id: store for store in run.stores}
+    assert "under_stocked" in health["MZF-01"].flags
+    assert any(gap.category == "Mojari" and gap.gap == 3 for gap in health["MZF-01"].min_display_gaps)
+    assert health["KNP-03"].fill_pct < 100
+
+
+def test_real_approval_subsets_do_not_need_offsetting_moves(run, parts, ds):
+    warehouse = [move for move in run.moves if move.type == "warehouse_to_store"]
+    store_outbound = [move for move in run.moves if move.type != "warehouse_to_store"]
+    lko_receipts = [move for move in store_outbound if move.to_location == "LKO-01"]
+    assert sum(move.units for move in warehouse if move.to_location == "LKO-01") == 266
+    assert not lko_receipts
+    assert not any(
+        move.type == "store_to_store" and move.from_location == "BLR-04" and move.style_id == "IW-01"
+        for move in store_outbound
+    )
+    issues = find_data_issues(ds)
+    for subset in (warehouse + lko_receipts, store_outbound):
+        assert all(result.passed for result in validate_moves(subset, parts[0], ds, issues, TODAY))
 
 
 def test_no_move_touches_a_data_issue_pair(run):
@@ -129,3 +169,109 @@ def test_seed_run_file_is_valid(schema):
     data = json.loads(SEED_RUN_PATH.read_text(encoding="utf-8"))
     jsonschema.validate(data, schema)
     assert Run.model_validate(data).run.trigger == "seed"
+
+
+def assert_rule_failed(rule, moves, table, ds, issues=()):
+    results = {result.rule: result for result in validate_moves(moves, table, ds, list(issues), TODAY)}
+    assert results[rule].checked > 0
+    assert not results[rule].passed
+    assert results[rule].failures
+
+
+@pytest.mark.parametrize(
+    ("rule", "mutate"),
+    [
+        ("senior_approval", lambda m: {"needs_senior_approval": not m.needs_senior_approval}),
+        ("move_details", lambda m: {"lead_days": m.lead_days + 1}),
+        ("ageing", lambda m: {"id": f"age-{m.id}"}),
+    ],
+)
+def test_validator_rejects_incorrect_move_fields(rule, mutate, run, parts, ds):
+    move = next(m for m in run.moves if m.type == "warehouse_to_store")
+    assert_rule_failed(rule, [move.model_copy(update=mutate(move))], parts[0], ds)
+
+
+def test_validator_rejects_excluded_destination(run, parts, ds):
+    move = next(m for m in run.moves if m.type == "warehouse_to_store")
+    issue = DataIssue(location_id=move.to_location, sku_id=move.sku_id,
+                      checks=["negative_stock"], note="Excluded", excluded=True)
+    assert_rule_failed("excluded_pairs", [move], parts[0], ds, [issue])
+
+
+def test_validator_rejects_cumulative_source_overspend(run, parts, ds):
+    table, supply, _ = parts
+    move = next(m for m in run.moves if m.type == "warehouse_to_store" and supply[m.sku_id] >= 2)
+    units = supply[move.sku_id] // 2 + 1
+    mrp = int(ds.items.set_index("sku_id").at[move.sku_id, "mrp"])
+    value = units * mrp
+    first = move.model_copy(update={"units": units, "value_mrp": value, "needs_senior_approval": value > 100_000})
+    second = first.model_copy(update={"id": f"{first.id}-second"})
+    assert_rule_failed("source_stock", [first, second], table, ds)
+
+
+def test_validator_rejects_store_receipts_over_capacity(run, parts, ds):
+    move = next(m for m in run.moves if m.type == "warehouse_to_store")
+    table = parts[0]
+    rows = table.loc[table["store_id"] == move.to_location]
+    fill = int(rows["on_hand"].sum() + rows["in_transit"].sum())
+    stores = ds.stores.copy()
+    stores.loc[stores["store_id"] == move.to_location, "stock_capacity_units"] = fill - 1
+    constrained = replace(ds, stores=stores)
+    assert_rule_failed("capacity", [move], table, constrained)
+    assert all(r.passed for r in validate_moves([], table, constrained, [], TODAY))
+    health = {store.store_id: store for store in store_health(table, constrained, [])}
+    assert "over_capacity" in health[move.to_location].flags
+
+
+def test_validator_rejects_replenishment_of_units_already_in_transit(run, parts, ds):
+    move = next(m for m in run.moves if m.id.startswith("s2s-"))
+    table = parts[0].copy()
+    destination = (table["store_id"] == move.to_location) & (table["sku_id"] == move.sku_id)
+    table.loc[destination, "in_transit"] += table.loc[destination, "need"]
+    table.loc[destination, "need"] = 0
+    assert_rule_failed("in_transit", [move], table, ds)
+
+
+def test_validator_rejects_protected_style_leave(run, parts, ds):
+    move = next(m for m in run.moves if m.from_location != "WH-KOL")
+    stores = ds.stores.copy()
+    stores.loc[stores["store_id"] == move.from_location, "tier"] = "S++"
+    protected = ds.flagship_protected.copy()
+    protected.loc[len(protected)] = [move.from_location, 1, move.style_id]
+    assert_rule_failed("flagship_protection", [move], parts[0], replace(ds, stores=stores, flagship_protected=protected))
+
+
+def test_validator_rejects_donor_category_below_display_minimum(run, parts, ds):
+    move = next(m for m in run.moves if m.from_location != "WH-KOL")
+    table = parts[0]
+    tier = ds.stores.set_index("store_id").at[move.from_location, "tier"]
+    category = display_category(move.category)
+    source = table.loc[(table["store_id"] == move.from_location) & (table["category"].map(display_category) == category)]
+    minimum = int(source["on_hand"].sum() + source["in_transit"].sum())
+    minimums = ds.min_display.copy()
+    key = (minimums["tier"] == tier) & (minimums["category"] == category)
+    if key.any():
+        minimums.loc[key, "min_display_units"] = minimum
+    else:
+        minimums.loc[len(minimums), ["tier", "category", "min_display_units"]] = [tier, category, minimum]
+    assert_rule_failed("minimum_display", [move], table, replace(ds, min_display=minimums))
+
+
+def test_validator_rejects_insufficient_donor_style_cover(run, parts, ds):
+    move = next(m for m in run.moves if m.type == "store_to_store")
+    table = parts[0].copy()
+    source_style = (table["store_id"] == move.from_location) & (table["style_id"] == move.style_id)
+    table.loc[source_style, "forecast_daily"] = table.loc[source_style, "on_hand"] + 1.0
+    assert_rule_failed("donor_cover", [move], table, ds)
+
+
+def test_failed_validation_leaves_previous_output(monkeypatch, tmp_path, capsys):
+    failure = RuleResult(rule="capacity", label="Store capacity", checked=1, passed=False, failures=["Too full."])
+    monkeypatch.setattr("stock_mover.run.validate_moves", lambda *_args: [failure])
+    previous = tmp_path / "run.json"
+    previous.write_text("previous run", encoding="utf-8")
+    with pytest.raises(SystemExit) as rejected:
+        main(["run", "--out", str(previous)])
+    assert rejected.value.code == 1
+    assert "Store capacity: Too full." in capsys.readouterr().err
+    assert previous.read_text(encoding="utf-8") == "previous run"

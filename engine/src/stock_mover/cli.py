@@ -7,6 +7,7 @@ from stock_mover.constants import OUT_PATH, SCHEMA_PATH
 from stock_mover.contract import run_json_schema
 from stock_mover.loader import load_data
 from stock_mover.run import build_run, run_text
+from stock_mover.validate import RuleViolation
 
 
 def schema_text() -> str:
@@ -38,4 +39,7 @@ def main(argv: list[str] | None = None) -> None:
         write_schema(args.out)
         print(f"Wrote {args.out}")
     elif args.command == "run":
-        write_run(args.out, args.trigger)
+        try:
+            write_run(args.out, args.trigger)
+        except RuleViolation as error:
+            parser.exit(1, f"{error}\n")

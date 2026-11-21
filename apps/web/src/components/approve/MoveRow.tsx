@@ -129,7 +129,7 @@ export const MoveRow = memo(function MoveRow({ move: m, decision, expanded, onDe
             <dd>{m.numbers.days_in_stock_84}</dd>
           </div>
           <div>
-            <dt>Cover before → after</dt>
+            <dt>{m.type === "pull_back" ? "Source cover before → after" : "Cover before → after"}</dt>
             <dd>
               {fmtCover(m.numbers.cover_before)} → {fmtCover(m.numbers.cover_after)}
             </dd>

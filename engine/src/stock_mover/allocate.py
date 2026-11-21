@@ -87,7 +87,7 @@ class Allocation:
     last_unit_cover: dict[Key, float] = field(default_factory=dict)
 
 
-def _min_display_map(min_display: pd.DataFrame) -> dict[tuple[str, str], int]:
+def min_display_map(min_display: pd.DataFrame) -> dict[tuple[str, str], int]:
     return {(t, c): int(u) for t, c, u in zip(min_display["tier"], min_display["category"],
                                               min_display["min_display_units"])}
 
@@ -110,7 +110,7 @@ def allocate(table: pd.DataFrame, supply: dict[str, int], headroom: dict[str, in
         headroom[key[0]] -= 1
 
     # Phase A: min display floor per store and display category.
-    minimums = _min_display_map(min_display)
+    minimums = min_display_map(min_display)
     groups: dict[tuple[str, str, str], list[Key]] = defaultdict(list)
     for s, k, cat, tier in zip(rows["store_id"], rows["sku_id"], rows["category"], rows["tier"]):
         groups[(s, display_category(cat), tier)].append((s, k))
@@ -169,6 +169,17 @@ def _cover_text(cover: float | None) -> str:
     return "no recent sales" if cover is None else f"{cover:.1f} days of cover"
 
 
+def move_numbers(row, before: int, after: int) -> MoveNumbers:
+    """Summarize the stock change at the store represented by the demand row."""
+    return MoveNumbers(
+        velocity=round(float(row.velocity), 2),
+        days_in_stock_84=int(row.days_in_stock_84),
+        cover_before=_cover(before, row.forecast_daily),
+        cover_after=_cover(after, row.forecast_daily),
+        lift=round(float(row.lift), 2),
+    )
+
+
 def _reason(row, units: int, has_min_display: bool, category_stock: int, minimum: int | None,
             cover_before: float | None, arrives: date) -> str:
     store, sku = row.store_id, row.sku_id
@@ -192,7 +203,7 @@ def warehouse_moves(table: pd.DataFrame, alloc: Allocation, items: pd.DataFrame,
     """One warehouse_to_store move per allocated store-SKU, highest priority first."""
     item = items.set_index("sku_id")
     rows = {(r.store_id, r.sku_id): r for r in table.itertuples(index=False)}
-    minimums = _min_display_map(min_display)
+    minimums = min_display_map(min_display)
     category_stock: dict[tuple[str, str], int] = defaultdict(int)
     for r in rows.values():
         category_stock[(r.store_id, display_category(r.category))] += int(r.on_hand + r.in_transit)
@@ -226,12 +237,6 @@ def warehouse_moves(table: pd.DataFrame, alloc: Allocation, items: pd.DataFrame,
             reason=_reason(row, units, has_min_display, category_stock[(row.store_id, dcat)],
                            minimums.get((row.tier, dcat)), cover_before, arrives),
             needs_senior_approval=value > SENIOR_APPROVAL_MRP,
-            numbers=MoveNumbers(
-                velocity=round(float(row.velocity), 2),
-                days_in_stock_84=int(row.days_in_stock_84),
-                cover_before=cover_before,
-                cover_after=_cover(stock + units, forecast),
-                lift=round(float(row.lift), 2),
-            ),
+            numbers=move_numbers(row, stock, stock + units),
         ))
     return sorted(moves, key=lambda m: (-m.priority, m.id))

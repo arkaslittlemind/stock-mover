@@ -58,7 +58,9 @@ export const MOVE_TYPES: MoveType[] = ["warehouse_to_store", "store_to_store", "
 export type PriorityTone = "urgent" | "high" | "normal" | "ageing";
 
 export function priorityOf(m: Move): { label: string; tone: PriorityTone } {
-  if (m.type === "pull_back") return { label: "Ageing", tone: "ageing" };
+  if (m.id.startsWith("age-")) return { label: "Ageing", tone: "ageing" };
+  if (m.id.startsWith("capacity-")) return { label: "Capacity", tone: "high" };
+  if (m.type === "pull_back") return { label: "Pull back", tone: "normal" };
   if (m.type === "store_to_store") return { label: "Rebalance", tone: "normal" };
   const cover = m.numbers.cover_before;
   if (cover === 0) return { label: "Stock-out", tone: "urgent" };

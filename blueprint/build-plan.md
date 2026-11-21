@@ -61,7 +61,7 @@ by 4:15, submit by 4:30, last push before 4:45 pm.
   list from the seed run with no sign-in; approvals survive a reload; the export
   CSV has exactly the approved moves; an invalid run file shows an error state
   instead of crashing; no horizontal scroll at 390 px.
-- [ ] 5. **Store → store, ageing, pull back, rule validator** [audit] (2:20 to
+- [x] 5. **Store → store, ageing, pull back, rule validator** [audit] (2:20 to
   2:55) - donor selection (30 days of style cover kept, min display kept, S++
   protected styles never given, nearest lead time first); ageing moves (over 180
   days old and over 120 days of cover) to the fastest-selling store with

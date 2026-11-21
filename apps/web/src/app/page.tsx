@@ -4,6 +4,7 @@ import { HowItWorks } from "@/components/approve/HowItWorks";
 import { RunConsole } from "@/components/approve/RunConsole";
 import { RunError } from "@/components/approve/RunError";
 import { SiteHeader } from "@/components/approve/SiteHeader";
+import { StoreHealthStrip } from "@/components/approve/StoreHealthStrip";
 import { formatDate, formatIST, formatNum, triggerPhrase } from "@/lib/format";
 import { loadRun, type Move } from "@/lib/run";
 
@@ -23,6 +24,7 @@ export default function Home() {
   const moves = [...run.moves].sort((a, b) => b.priority - a.priority);
   const topMove: Move | null = moves[0] ?? null;
   const rulesPassed = run.rule_check.filter((r) => r.passed).length;
+  const ruleCount = run.rule_check.length;
   const runInfo = `Data as of ${formatDate(run.run.data_as_of, true)} close, generated ${formatIST(run.run.generated_at)} ${triggerPhrase(run.run.trigger)}.`;
 
   return (
@@ -49,16 +51,15 @@ export default function Home() {
                 {formatNum(moves.length)} moves waiting · data as of {formatDate(run.run.data_as_of)}
               </span>
             </div>
-            {run.rule_check.length > 0 && (
-              <p className="mt-4 text-[13px] font-medium text-approve tabular-nums">
-                Rule check: {rulesPassed} of {run.rule_check.length} rules passed
-              </p>
-            )}
+            <p className={`mt-4 text-[13px] font-medium tabular-nums ${ruleCount === 0 ? "text-stone" : rulesPassed === ruleCount ? "text-approve" : "text-oxblood"}`}>
+              {ruleCount ? `Rule check: ${rulesPassed} of ${ruleCount} rules passed` : "Rule check unavailable"}
+            </p>
             <p className="mt-6 text-xs text-stone md:mt-10">Built for the Manyavar Stock Mover challenge</p>
           </div>
           <HeroTicket move={topMove} />
         </section>
 
+        <StoreHealthStrip stores={run.stores} />
         <section id="run" tabIndex={-1} aria-label="Today's run" className="mx-auto w-full max-w-[1240px] scroll-mt-4 px-4 outline-none md:px-8">
           <RunConsole
             runId={run.run.id}
