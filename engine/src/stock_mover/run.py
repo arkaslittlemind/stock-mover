@@ -1,5 +1,6 @@
 """Build one run: data checks, demand, warehouse allocation and the contract file."""
 
+from collections.abc import Callable
 from datetime import datetime, timezone
 
 from stock_mover.allocate import (
@@ -10,6 +11,7 @@ from stock_mover.allocate import (
     warehouse_moves,
     warehouse_supply,
 )
+from stock_mover.briefing import Facts, build_facts, format_inr
 from stock_mover.checks import find_data_issues
 from stock_mover.constants import TODAY
 from stock_mover.contract import Briefing, DataIssue, Move, Run, RunInfo
@@ -20,17 +22,6 @@ from stock_mover.store_moves import plan_store_moves
 from stock_mover.validate import RuleViolation, validate_moves
 
 Trigger = str  # "manual" | "schedule" | "seed", validated by RunInfo
-
-
-def format_inr(value: float) -> str:
-    """Whole rupees with Indian digit grouping: 11393257 -> 1,13,93,257."""
-    digits = str(round(value))
-    head, tail = digits[:-3], digits[-3:]
-    groups = []
-    while len(head) > 2:
-        groups.insert(0, head[-2:])
-        head = head[:-2]
-    return ",".join(([head] if head else []) + groups + [tail])
 
 
 def template_briefing(moves: list[Move], issues: list[DataIssue]) -> Briefing:
@@ -46,7 +37,12 @@ def template_briefing(moves: list[Move], issues: list[DataIssue]) -> Briefing:
     return Briefing(text=text, source="template", checked=True)
 
 
-def build_run(ds: Dataset, now: datetime, trigger: Trigger) -> Run:
+def build_run(
+    ds: Dataset,
+    now: datetime,
+    trigger: Trigger,
+    briefing_writer: Callable[[Facts, Briefing], Briefing] | None = None,
+) -> Run:
     """The full run for the data pack; `now` must be timezone-aware."""
     if now.tzinfo is None:
         raise ValueError("now must be timezone-aware")
@@ -67,7 +63,7 @@ def build_run(ds: Dataset, now: datetime, trigger: Trigger) -> Run:
     failures = [f"{rule.label}: {detail}" for rule in rules for detail in rule.failures]
     if failures:
         raise RuleViolation("Rule validation failed.\n" + "\n".join(failures))
-    return Run(
+    run = Run(
         run=RunInfo(
             id=f"{TODAY.isoformat()}-{generated_at:%Y%m%dT%H%M%SZ}",
             data_as_of=TODAY,
@@ -80,6 +76,9 @@ def build_run(ds: Dataset, now: datetime, trigger: Trigger) -> Run:
         data_issues=issues,
         stores=store_health(table, ds, moves),
     )
+    if briefing_writer is not None:
+        run.briefing = briefing_writer(build_facts(run), run.briefing)
+    return run
 
 
 def run_text(run: Run) -> str:

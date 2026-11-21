@@ -72,7 +72,7 @@ by 4:15, submit by 4:30, last push before 4:45 pm.
   the real run reports 0 broken rules; JKT-08 and IW-08 appear in ageing moves;
   no protected style leaves an S++ store; the live page shows all three groups,
   the rule check badge and the store health strip.
-- [ ] 6. **LLM briefing with number check** (2:55 to 3:20) - Sarvam chat call
+- [x] 6. **LLM briefing with number check** (2:55 to 3:20) - Sarvam chat call
   from the engine with a facts JSON; number checker (every number in the text
   must appear in the facts); one retry, then template fallback; `briefing.source`
   and `checked` in the run; key from env only. Test the key works before

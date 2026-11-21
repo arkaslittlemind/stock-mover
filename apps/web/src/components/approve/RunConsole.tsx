@@ -223,7 +223,7 @@ export function RunConsole({ runId, dataAsOf, runInfo, briefing, moves, dataIssu
             <p className="text-sm">{briefing.text}</p>
             <p className="mt-1 text-xs text-stone">
               {briefing.source === "llm"
-                ? `Written by Sarvam AI${briefing.checked ? " · numbers checked" : ""}`
+                ? briefing.checked ? "AI-written, numbers checked" : "Written by Sarvam AI"
                 : "Template"}
             </p>
           </div>

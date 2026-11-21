@@ -3,6 +3,7 @@ import json
 from datetime import datetime, timezone
 from pathlib import Path
 
+from stock_mover.briefing import configured_sarvam, write_briefing
 from stock_mover.constants import OUT_PATH, SCHEMA_PATH
 from stock_mover.contract import run_json_schema
 from stock_mover.loader import load_data
@@ -19,8 +20,12 @@ def write_schema(out: Path) -> None:
     out.write_text(schema_text(), encoding="utf-8", newline="\n")
 
 
-def write_run(out: Path, trigger: str) -> None:
-    run = build_run(load_data(), datetime.now(timezone.utc), trigger)
+def write_run(out: Path, trigger: str, *, no_llm: bool = False) -> None:
+    writer = None
+    if not no_llm:
+        llm = configured_sarvam()
+        writer = lambda facts, fallback: write_briefing(facts, llm, fallback)
+    run = build_run(load_data(), datetime.now(timezone.utc), trigger, writer)
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(run_text(run), encoding="utf-8", newline="\n")
     print(f"Wrote {out}: {len(run.moves)} moves, {len(run.data_issues)} data issues")
@@ -34,12 +39,13 @@ def main(argv: list[str] | None = None) -> None:
     run = commands.add_parser("run", help="run the engine and write the run JSON")
     run.add_argument("--out", type=Path, default=OUT_PATH)
     run.add_argument("--trigger", choices=["manual", "schedule", "seed"], default="manual")
+    run.add_argument("--no-llm", action="store_true", help="use the template briefing")
     args = parser.parse_args(argv)
     if args.command == "schema":
         write_schema(args.out)
         print(f"Wrote {args.out}")
     elif args.command == "run":
         try:
-            write_run(args.out, args.trigger)
+            write_run(args.out, args.trigger, no_llm=args.no_llm)
         except RuleViolation as error:
             parser.exit(1, f"{error}\n")
