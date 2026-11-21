@@ -24,3 +24,7 @@ Thumbs.db
 
 # Logs
 *.log
+
+# Engine run output
+out/
+.pytest_cache/
