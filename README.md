@@ -5,7 +5,7 @@
 **Every morning, Stock Mover turns Manyavar's sales and stock data into a ready-to-approve list of stock moves, each with a one-line reason and an independent rule check.**
 
 - **Live app (no sign-in):** https://stock-mover.vercel.app
-- **Demo video (2 min):** _link added on submission_
+- **Demo video (1 min 24 s):** https://youtu.be/ZKTUJoFybTg
 - Built for **Vibe Coders Hackathon Edition 3** (Calcutta AI Club, 21 Nov 2026) on the **Manyavar "Stock Mover"** statement (Vedant Fashions Limited). All code was written on the day, after 11:00 am.
 
 ![Stock Mover home page: today's top move, WH-KOL to LKO-01, 45 Ivory Chikankari Kurta Sets with a one-line reason](docs/images/hero.png)
@@ -96,6 +96,7 @@ For the LLM briefing, copy `.env.example` to `.env` and set `SARVAM_API_KEY` and
 - **Codex** with GPT Sol 6.2: build items 5 and 6, independent audits
 - **AI Blueprint** (ai-blueprint.dev): spec → build → check → complete workflow. Plans, specs and the build history are in [`blueprint/`](blueprint/)
 - **Sarvam AI** inside the product, for the morning briefing
+- **Demo video:** recorded with Playwright on the live site and edited with HyperFrames (HeyGen); the background music was generated in code
 
 ## Data
 
