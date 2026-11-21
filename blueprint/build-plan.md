@@ -43,7 +43,7 @@ by 4:15, submit by 4:30, last push before 4:45 pm.
   rate); BLR-05 uses peer velocity; LKO-01 KUR-04 shows a high forecast; and a
   hand-computed velocity for 3 real store-SKUs matches the engine.
 - *Lunch 1:00 to 1:15. Switching statement closes at 1:00 (not switching).*
-- [ ] 3. **Warehouse → store + seed run** (1:15 to 1:45) - targets (lead time
+- [x] 3. **Warehouse → store + seed run** (1:15 to 1:45) - targets (lead time
   + 30 days, min display floor), needs net of in-transit, one-unit-at-a-time
   fair-share allocation by lowest projected cover, capacity headroom, Rs
   1,00,000 approval tag, priority, template reasons; CLI `uv run stock-mover
