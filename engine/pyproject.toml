@@ -13,7 +13,7 @@ dependencies = [
 ]
 
 [project.scripts]
-stock-mover = "stock_mover:main"
+stock-mover = "stock_mover.cli:main"
 
 [build-system]
 requires = ["uv_build>=0.12.7,<0.13.0"]
@@ -21,5 +21,6 @@ build-backend = "uv_build"
 
 [dependency-groups]
 dev = [
+    "jsonschema>=4.26.0",
     "pytest>=9.2.0",
 ]

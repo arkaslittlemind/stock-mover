@@ -27,7 +27,7 @@ by 4:15, submit by 4:30, last push before 4:45 pm.
 
 ## Items
 
-- [ ] 1. **Loader, data checks, output contract** (12:00 to 12:30) - load all
+- [x] 1. **Loader, data checks, output contract** (12:00 to 12:30) - load all
   CSVs as text with typed conversions; drop packaging; treat missing snapshot
   rows as 0; data checks for negative stock and snapshot vs last weekly close;
   join checks; Pydantic models for the output contract (project plan §5) and a

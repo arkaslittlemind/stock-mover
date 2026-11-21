@@ -1,0 +1,455 @@
+{
+  "$defs": {
+    "Briefing": {
+      "additionalProperties": false,
+      "properties": {
+        "text": {
+          "title": "Text",
+          "type": "string"
+        },
+        "source": {
+          "enum": [
+            "llm",
+            "template"
+          ],
+          "title": "Source",
+          "type": "string"
+        },
+        "checked": {
+          "title": "Checked",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "text",
+        "source",
+        "checked"
+      ],
+      "title": "Briefing",
+      "type": "object"
+    },
+    "DataIssue": {
+      "additionalProperties": false,
+      "properties": {
+        "location_id": {
+          "title": "Location Id",
+          "type": "string"
+        },
+        "sku_id": {
+          "title": "Sku Id",
+          "type": "string"
+        },
+        "checks": {
+          "items": {
+            "enum": [
+              "negative_stock",
+              "snapshot_vs_weekly",
+              "unknown_sku",
+              "unknown_location"
+            ],
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Checks",
+          "type": "array"
+        },
+        "note": {
+          "title": "Note",
+          "type": "string"
+        },
+        "excluded": {
+          "title": "Excluded",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "location_id",
+        "sku_id",
+        "checks",
+        "note",
+        "excluded"
+      ],
+      "title": "DataIssue",
+      "type": "object"
+    },
+    "MinDisplayGap": {
+      "additionalProperties": false,
+      "properties": {
+        "category": {
+          "title": "Category",
+          "type": "string"
+        },
+        "min_display_units": {
+          "title": "Min Display Units",
+          "type": "integer"
+        },
+        "units": {
+          "title": "Units",
+          "type": "integer"
+        },
+        "gap": {
+          "title": "Gap",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "category",
+        "min_display_units",
+        "units",
+        "gap"
+      ],
+      "title": "MinDisplayGap",
+      "type": "object"
+    },
+    "Move": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "type": {
+          "enum": [
+            "warehouse_to_store",
+            "store_to_store",
+            "pull_back"
+          ],
+          "title": "Type",
+          "type": "string"
+        },
+        "sku_id": {
+          "title": "Sku Id",
+          "type": "string"
+        },
+        "style_id": {
+          "title": "Style Id",
+          "type": "string"
+        },
+        "style_name": {
+          "title": "Style Name",
+          "type": "string"
+        },
+        "category": {
+          "title": "Category",
+          "type": "string"
+        },
+        "size": {
+          "title": "Size",
+          "type": "string"
+        },
+        "from": {
+          "title": "From",
+          "type": "string"
+        },
+        "to": {
+          "title": "To",
+          "type": "string"
+        },
+        "units": {
+          "minimum": 1,
+          "title": "Units",
+          "type": "integer"
+        },
+        "value_mrp": {
+          "minimum": 0,
+          "title": "Value Mrp",
+          "type": "number"
+        },
+        "lead_days": {
+          "minimum": 0,
+          "title": "Lead Days",
+          "type": "integer"
+        },
+        "arrives_on": {
+          "format": "date",
+          "title": "Arrives On",
+          "type": "string"
+        },
+        "priority": {
+          "title": "Priority",
+          "type": "number"
+        },
+        "reason": {
+          "title": "Reason",
+          "type": "string"
+        },
+        "needs_senior_approval": {
+          "title": "Needs Senior Approval",
+          "type": "boolean"
+        },
+        "numbers": {
+          "$ref": "#/$defs/MoveNumbers"
+        }
+      },
+      "required": [
+        "id",
+        "type",
+        "sku_id",
+        "style_id",
+        "style_name",
+        "category",
+        "size",
+        "from",
+        "to",
+        "units",
+        "value_mrp",
+        "lead_days",
+        "arrives_on",
+        "priority",
+        "reason",
+        "needs_senior_approval",
+        "numbers"
+      ],
+      "title": "Move",
+      "type": "object"
+    },
+    "MoveNumbers": {
+      "additionalProperties": false,
+      "properties": {
+        "velocity": {
+          "title": "Velocity",
+          "type": "number"
+        },
+        "days_in_stock_84": {
+          "maximum": 84,
+          "minimum": 0,
+          "title": "Days In Stock 84",
+          "type": "integer"
+        },
+        "cover_before": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Cover Before"
+        },
+        "cover_after": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Cover After"
+        },
+        "lift": {
+          "title": "Lift",
+          "type": "number"
+        }
+      },
+      "required": [
+        "velocity",
+        "days_in_stock_84",
+        "cover_before",
+        "cover_after",
+        "lift"
+      ],
+      "title": "MoveNumbers",
+      "type": "object"
+    },
+    "RuleResult": {
+      "additionalProperties": false,
+      "properties": {
+        "rule": {
+          "title": "Rule",
+          "type": "string"
+        },
+        "label": {
+          "title": "Label",
+          "type": "string"
+        },
+        "checked": {
+          "minimum": 0,
+          "title": "Checked",
+          "type": "integer"
+        },
+        "passed": {
+          "title": "Passed",
+          "type": "boolean"
+        },
+        "failures": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Failures",
+          "type": "array"
+        }
+      },
+      "required": [
+        "rule",
+        "label",
+        "checked",
+        "passed",
+        "failures"
+      ],
+      "title": "RuleResult",
+      "type": "object"
+    },
+    "RunInfo": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "data_as_of": {
+          "format": "date",
+          "title": "Data As Of",
+          "type": "string"
+        },
+        "generated_at": {
+          "format": "date-time",
+          "title": "Generated At",
+          "type": "string"
+        },
+        "trigger": {
+          "enum": [
+            "manual",
+            "schedule",
+            "seed"
+          ],
+          "title": "Trigger",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "data_as_of",
+        "generated_at",
+        "trigger"
+      ],
+      "title": "RunInfo",
+      "type": "object"
+    },
+    "StoreHealth": {
+      "additionalProperties": false,
+      "properties": {
+        "store_id": {
+          "title": "Store Id",
+          "type": "string"
+        },
+        "city": {
+          "title": "City",
+          "type": "string"
+        },
+        "zone": {
+          "title": "Zone",
+          "type": "string"
+        },
+        "tier": {
+          "title": "Tier",
+          "type": "string"
+        },
+        "capacity_units": {
+          "title": "Capacity Units",
+          "type": "integer"
+        },
+        "units_on_hand": {
+          "title": "Units On Hand",
+          "type": "integer"
+        },
+        "units_in_transit": {
+          "title": "Units In Transit",
+          "type": "integer"
+        },
+        "fill_pct": {
+          "title": "Fill Pct",
+          "type": "number"
+        },
+        "days_of_cover": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Days Of Cover"
+        },
+        "min_display_gaps": {
+          "items": {
+            "$ref": "#/$defs/MinDisplayGap"
+          },
+          "title": "Min Display Gaps",
+          "type": "array"
+        },
+        "flags": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Flags",
+          "type": "array"
+        }
+      },
+      "required": [
+        "store_id",
+        "city",
+        "zone",
+        "tier",
+        "capacity_units",
+        "units_on_hand",
+        "units_in_transit",
+        "fill_pct",
+        "days_of_cover",
+        "min_display_gaps",
+        "flags"
+      ],
+      "title": "StoreHealth",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "run": {
+      "$ref": "#/$defs/RunInfo"
+    },
+    "briefing": {
+      "$ref": "#/$defs/Briefing"
+    },
+    "moves": {
+      "items": {
+        "$ref": "#/$defs/Move"
+      },
+      "title": "Moves",
+      "type": "array"
+    },
+    "rule_check": {
+      "items": {
+        "$ref": "#/$defs/RuleResult"
+      },
+      "title": "Rule Check",
+      "type": "array"
+    },
+    "data_issues": {
+      "items": {
+        "$ref": "#/$defs/DataIssue"
+      },
+      "title": "Data Issues",
+      "type": "array"
+    },
+    "stores": {
+      "items": {
+        "$ref": "#/$defs/StoreHealth"
+      },
+      "title": "Stores",
+      "type": "array"
+    }
+  },
+  "required": [
+    "run",
+    "briefing",
+    "moves",
+    "rule_check",
+    "data_issues",
+    "stores"
+  ],
+  "title": "Run",
+  "type": "object"
+}
